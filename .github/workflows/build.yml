@@ -10,15 +10,22 @@ on:
         required: false
         type: string
         default: ''
+      qt-version:
+        required: false
+        type: string
+        default: '5.15.2'
+      install-qt:
+        required: false
+        type: boolean
+        default: true
 
 env:
-  QT_VERSION: 5.15.2
   MAC_CERT: ${{secrets.MACOS_CERT_ID}}
   WIN_CERT: ${{secrets.WIN_CERTIFICATE}}
 
 jobs:
   build:
-    name: Build ${{ inputs.name }}
+    name: Build ${{ inputs.name }} (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -54,10 +61,11 @@ jobs:
         Set-Content -Path certificate\certificate.txt -Value '${{ secrets.WIN_CERTIFICATE }}'
         certutil -decode certificate\certificate.txt certificate\certificate.pfx
     - name: Install Qt
+      if: ${{ inputs.install-qt }} == true
       uses: jurplel/install-qt-action@v3
       with:
         cache: true
-        version: ${{ env.QT_VERSION }}
+        version: ${{ inputs.qt-version }}
     - name: Install dependencies
       shell: bash
       run: |
