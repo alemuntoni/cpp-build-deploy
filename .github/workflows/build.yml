@@ -1,7 +1,11 @@
-name: BuildMeshLab
+name: Build
 
 on:
-  workflow_call
+  workflow_call:
+    inputs:
+      name:
+        required: true
+        type: string
 
 env:
   QT_VERSION: 5.15.2
@@ -9,8 +13,8 @@ env:
   WIN_CERT: ${{secrets.WIN_CERTIFICATE}}
 
 jobs:
-  meshlab_build:
-    name: Build MeshLab
+  build:
+    name: Build ${{ inputs.name }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -71,13 +75,13 @@ jobs:
       shell: bash
       run: |
         bash scripts/${{ runner.os }}/2_deploy.sh --cert_pssw='${{ secrets.WIN_CERTIFICATE_PSSW }}' --cert_id='${{ secrets.MACOS_CERT_ID }}'
-    - name: Upload MeshLab Portable
+    - name: Upload ${{ inputs.name }} Portable
       uses: actions/upload-artifact@v3
       with:
-        name: MeshLab_${{ runner.os }}_portable${{steps.envs.outputs.artifact_suffix}}
+        name: ${{ inputs.name }}_${{ runner.os }}_portable${{steps.envs.outputs.artifact_suffix}}
         path: install/
-    - name: Upload MeshLab Packages
+    - name: Upload ${{ inputs.name }} Packages
       uses: actions/upload-artifact@v3
       with:
-        name: MeshLab_${{ runner.os }}_packages${{steps.envs.outputs.artifact_suffix}}
-        path: packages/MeshLab*
+        name: ${{ inputs.name }}_${{ runner.os }}_packages${{steps.envs.outputs.artifact_suffix}}
+        path: packages/${{ inputs.name }}*
