@@ -6,6 +6,10 @@ on:
       name:
         required: true
         type: string
+      build-option:
+        required: false
+        type: string
+        default: ''
 
 env:
   QT_VERSION: 5.15.2
@@ -20,8 +24,18 @@ jobs:
       fail-fast: false
       matrix:
         os: ['ubuntu-20.04', 'macos-latest', 'windows-latest']
-        precision: [single_precision, double_precision]
     steps:
+    - name: Setup env variables
+      id: envs
+      shell: bash
+      run: |
+        if [ "${{ inputs.build-option }}" != "" ]; then
+          echo "build_option=--${{ inputs.build-option }}" >> $GITHUB_ENV
+          echo "artifact_suffix=_${{ inputs.build-option }}" >> $GITHUB_OUTPUT
+        else
+          echo "build_option=" >> $GITHUB_ENV
+          echo "artifact_suffix=" >> $GITHUB_OUTPUT
+        fi
     - uses: actions/checkout@v3
       with:
         submodules: recursive
@@ -48,15 +62,6 @@ jobs:
       shell: bash
       run: |
         bash scripts/${{ runner.os }}/0_setup_env.sh --dont_install_qt
-    - name: Setup env variables
-      id: envs
-      shell: bash
-      run: |
-        if [ "${{matrix.precision}}" == "double_precision" ]; then
-          echo "artifact_suffix=_double" >> $GITHUB_OUTPUT
-        else
-          echo "artifact_suffix=" >> $GITHUB_OUTPUT
-        fi
     - name: Cache external libraries sources
       id: cache-ext-libs
       uses: actions/cache@v3
@@ -66,11 +71,11 @@ jobs:
     - name: Ccache
       uses: hendrikmuhs/ccache-action@v1.2
       with:
-        key: ${{ runner.os }}-${{ github.ref }}-${{ matrix.precision }}
+        key: ${{ runner.os }}-${{ github.ref }}-${{ inputs.build-option }}
     - name: Configure and Build
       shell: bash
       run: |
-        bash scripts/${{ runner.os }}/1_build.sh --${{ matrix.precision }} --nightly --ccache
+        bash scripts/${{ runner.os }}/1_build.sh ${{steps.envs.outputs.build_option}} --nightly --ccache
     - name: Deploy
       shell: bash
       run: |
