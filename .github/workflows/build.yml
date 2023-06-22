@@ -30,10 +30,10 @@ jobs:
       shell: bash
       run: |
         if [ "${{ inputs.build-option }}" != "" ]; then
-          echo "build_option=--${{ inputs.build-option }}" >> $GITHUB_ENV
+          echo "build_option=--${{ inputs.build-option }}" >> $GITHUB_OUTPUT
           echo "artifact_suffix=_${{ inputs.build-option }}" >> $GITHUB_OUTPUT
         else
-          echo "build_option=" >> $GITHUB_ENV
+          echo "build_option=" >> $GITHUB_OUTPUT
           echo "artifact_suffix=" >> $GITHUB_OUTPUT
         fi
     - uses: actions/checkout@v3
